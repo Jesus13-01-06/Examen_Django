@@ -47,12 +47,14 @@ class Plataforma(models.Model):
         return self.nombre    
 
 class Videojuego(models.Model):
+    id=models.CharField(primary_key=True, max_length=10)
     titulo = models.CharField(max_length=200)
     fecha_lanzamiento = models.DateField()
     estudio_desarrollo = models.ForeignKey(Estudio, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.titulo  
+        return self.titulo 
+     
 class VideojuegoPlataformas(models.Model):
     videojuego = models.ForeignKey(Videojuego, on_delete=models.CASCADE)
     plataforma = models.ForeignKey(Plataforma, on_delete=models.CASCADE)

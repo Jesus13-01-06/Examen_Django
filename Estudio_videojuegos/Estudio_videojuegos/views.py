@@ -2,26 +2,8 @@ from django.shortcuts import render
 
 
 # Create your views here.
-"""Dada la siguiente SQL, crea los Modelos, Urls y QuerySets correspondientes para mostrar los datos que se piden:
 
-SELECT 
-    V.*,E.*,VP.*,P.*
-FROM 
-    videojuego V
-INNER JOIN 
-    estudio E ON V.estudio_desarrollo_id = E.id
-INNER JOIN 
-    sede S ON E.id = S.estudio_id
-LEFT JOIN 
-    videojuego_plataformas VP ON V.id = VP.videojuego_id
-LEFT JOIN
-    plataforma P ON VP.plataforma_id = P.id
-LEFT JOIN
-    analisis A ON V.id = A.videojuego_id
-WHERE 
-    V.titulo LIKE '%Fantasy%' 
-    AND S.pais LIKE '%Unidos%';
-"""
+
 def index(request):
     return render(request, 'index.html')
 
@@ -41,11 +23,17 @@ def mi_error_500(request,exception=None):
     return render(request,'error/500.html',None,None,500)
 
 #Páginas reales
-
+"""En caso de que el titulo del videojuego contenga 'Fantasy' y la sede del estudio de desarrollo esté en un país que contenga 'Unidos', muestra todos los detalles del videojuego, el estudio de desarrollo, las plataformas en las que está disponible y cualquier análisis asociado."""
 def detalle_videojuego(request, videojuego_id):
-    # Lógica para obtener los detalles del videojuego con el ID proporcionado
-    contexto = {
-        'videojuego_id': videojuego_id,
-        # Agrega más datos al contexto según sea necesario
-    }
-    return render(request, 'detalle_videojuego.html', contexto)
+    from .models import Videojuego
+
+    try:
+        videojuego = Videojuego.objects.get(id=videojuego_id, titulo__icontains='Fantasy', estudio_desarrollo__sede__pais__icontains='Unidos')
+        plataformas = videojuego.videojuegoplataformas_set.select_related('plataforma').all()
+        contexto = {
+            'videojuego': videojuego,
+            'plataformas': plataformas,
+        }
+        return render(request, 'detalle_videojuego.html', contexto)
+    except Videojuego.DoesNotExist:
+        return render(request, 'error/404.html', None, None, 404)
